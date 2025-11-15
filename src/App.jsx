@@ -6,6 +6,7 @@ import { useWindowSize } from "react-use";
 import ReactConfetti from "react-confetti";
 function App() {
   const { width, height } = useWindowSize();
+
   function generateRandomDice() {
     return new Array(10).fill(0).map(() => ({
       value: Math.ceil(Math.random() * 6),
@@ -14,6 +15,7 @@ function App() {
     }));
   }
   const [dice, setDice] = useState(generateRandomDice());
+  const [rollCount, setRollCount] = useState(0);
   function hold(id) {
     setDice((oldDice) =>
       oldDice.map((die) =>
@@ -21,8 +23,13 @@ function App() {
       )
     );
   }
-
+  let gameWon =
+    dice.every((die) => die.isHeld === true) &&
+    dice.every((die) => die.value === dice[0].value);
   function rollDice() {
+    gameWon
+      ? setRollCount(0)
+      : setRollCount((prevRollCount) => prevRollCount + 1);
     if (!gameWon) {
       setDice((oldDice) =>
         oldDice.map((die) =>
@@ -42,9 +49,6 @@ function App() {
       hold={() => hold(dieObj.id)}
     />
   ));
-  let gameWon =
-    dice.every((die) => die.isHeld === true) &&
-    dice.every((die) => die.value === dice[0].value);
 
   return (
     <main>
@@ -67,6 +71,7 @@ function App() {
       <button className="roll-dice" onClick={rollDice}>
         {gameWon ? "New Game" : " Roll"}
       </button>
+      <p>Roll Count : {rollCount}</p>
     </main>
   );
 }
