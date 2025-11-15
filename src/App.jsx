@@ -1,6 +1,6 @@
 import "./App.css";
 import Dice from "./components/Dice";
-import { useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { nanoid } from "nanoid";
 import { useWindowSize } from "react-use";
 import ReactConfetti from "react-confetti";
@@ -15,7 +15,22 @@ function App() {
     }));
   }
   const [dice, setDice] = useState(generateRandomDice());
+  let gameWon =
+    dice.every((die) => die.isHeld === true) &&
+    dice.every((die) => die.value === dice[0].value);
   const [rollCount, setRollCount] = useState(0);
+  const [bestScore, setBestScore] = useState(
+    () => Number(localStorage.getItem("bestScore")) || null
+  );
+  const [animate, setAnimate] = useState(false);
+  useEffect(() => {
+    if (gameWon) {
+      if (bestScore === null || rollCount < bestScore) {
+        setBestScore(rollCount);
+        localStorage.setItem("bestScore", rollCount);
+      }
+    }
+  }, [gameWon]);
   function hold(id) {
     setDice((oldDice) =>
       oldDice.map((die) =>
@@ -23,14 +38,14 @@ function App() {
       )
     );
   }
-  let gameWon =
-    dice.every((die) => die.isHeld === true) &&
-    dice.every((die) => die.value === dice[0].value);
+
   function rollDice() {
     gameWon
       ? setRollCount(0)
       : setRollCount((prevRollCount) => prevRollCount + 1);
     if (!gameWon) {
+      setAnimate(true);
+      setTimeout(() => setAnimate(false), 300);
       setDice((oldDice) =>
         oldDice.map((die) =>
           die.isHeld ? die : { ...die, value: Math.ceil(Math.random() * 6) }
@@ -47,6 +62,7 @@ function App() {
       value={dieObj.value}
       isHeld={dieObj.isHeld}
       hold={() => hold(dieObj.id)}
+      animate={animate}
     />
   ));
 
@@ -68,10 +84,19 @@ function App() {
         current value between rolls.
       </p>
       <div className="dice-container">{DiceElements}</div>
-      <button className="roll-dice" onClick={rollDice}>
+      <button ref={rollCount.current} className="roll-dice" onClick={rollDice}>
         {gameWon ? "New Game" : " Roll"}
       </button>
-      <p>Roll Count : {rollCount}</p>
+      <div className="stats">
+        <div className="stat-box">
+          <p className="stat-label">Rolls</p>
+          <p className="stat-value">{rollCount}</p>
+        </div>
+        <div className="stat-box stat-best">
+          <p className="stat-label">Best Score</p>
+          <p className="stat-value">{bestScore !== null ? bestScore : "—"}</p>
+        </div>
+      </div>
     </main>
   );
 }
