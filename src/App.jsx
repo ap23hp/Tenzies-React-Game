@@ -49,6 +49,11 @@ function App() {
   return (
     <main>
       {gameWon && <ReactConfetti width={width} height={height} />}
+      <div aria-live="polite" className="sr-only">
+        {gameWon && (
+          <p>Congratulations! You won! Press "New Game" to start again.</p>
+        )}
+      </div>
       {gameWon ? (
         <h1 className="win-text">✨ Congratulations! Tenzies Completed!</h1>
       ) : (
